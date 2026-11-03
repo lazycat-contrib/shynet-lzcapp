@@ -1,6 +1,10 @@
 application:
   subdomain: shynet
   multi_instance: false
+  # This app authenticates its own users, so it is exposed directly
+  # instead of sitting behind the platform login gate.
+  public_path:
+    - /
   upstreams:
     - location: /package-licenses/
       backend: file:///lzcapp/pkg/content/licenses/
@@ -51,7 +55,8 @@ usage: |
   - 管理员账号密码来自安装参数，密码默认随机生成，不存在内置弱口令。
   - 应用密钥由平台稳定密钥生成，每个部署不同。
   - 已配置访问域名与 CSRF 信任来源（反代下必需，否则登录会报错）。
-  - 应用经懒猫入口鉴权访问。
+  - 应用直接对外开放，由应用自己的登录页鉴权：
+    自带账号体系的服务再套一层平台鉴权会造成重复登录，所以用 public_path。
 
   说明：
   - 单容器部署，使用内置 SQLite，无需额外数据库。
