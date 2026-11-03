@@ -128,7 +128,7 @@ jobs:
               'sha256': h.hexdigest(),
               'size': pkg.stat().st_size,
               'runtime_tested': False,
-              'note': 'layout bootstrap + bcrypt auth init container both verified in-package',
+              'note': 'admin bootstrap script and Django secret derived from deploy params; no built-in credential',
           }
           print(json.dumps(result))
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as f:
