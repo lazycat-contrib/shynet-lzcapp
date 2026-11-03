@@ -1,6 +1,6 @@
 package: community.lazycat.app.shynet
 name: Shynet
-version: 0.0.0
+version: 0.13.1
 description: "Privacy-friendly analytics with no cookies: track visits without collecting personal data."
 min_os_version: "1.5.0"
 homepage: https://github.com/milesmcc/shynet
