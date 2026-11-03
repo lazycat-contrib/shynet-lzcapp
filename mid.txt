@@ -1,0 +1,39 @@
+              ups = app['upstreams']
+              assert any(u['location'] == '/' and 'shynet:8080' in (u.get('backend') or '')
+                         for u in ups), ups
+
+              svcs = m['services']
+              assert set(svcs) == {'shynet'}, set(svcs)
+
+              svc = svcs['shynet']
+              assert 'milesmcc/shynet' in svc['image'], svc['image']
+              assert svc['image'].endswith(':' + tag), svc['image']
+
+              env = ' '.join(str(x) for x in svc['environment'])
+              # Django falls back to the literal "onlyusethisindev" otherwise
+              assert 'DJANGO_SECRET_KEY=' in env and 'stable_secret' in env, env
+              # without the public host, Host-header validation rejects the domain
+              assert 'ALLOWED_HOSTS=' in env and '.S.AppDomain' in env, env
+              # login posts are rejected without a trusted https origin
+              assert 'CSRF_TRUSTED_ORIGINS=https://' in env, env
+              assert 'SQLITE=True' in env, env
+              assert any(b.endswith(':/var/local/shynet') for b in svc['binds']), svc['binds']
+
+              # admin comes from deploy params, never a hardcoded default
+              assert 'ADMIN_EMAIL=' in env and '.U.admin_email' in env, env
+              assert 'ADMIN_PASSWORD=' in env and '.U.admin_password' in env, env
+              assert svc.get('entrypoint') == ['/lzcapp/pkg/content/create-admin.sh'], svc.get('entrypoint')
+
+              params = yaml.safe_load(package.extractfile('deploy_params.yml').read())
+              by_id = {q['id']: q for q in params['params']}
+              assert set(by_id) == {'admin_email', 'admin_password'}, set(by_id)
+              assert by_id['admin_password']['type'] == 'secret'
+              assert 'random' in str(by_id['admin_password'].get('default_value', ''))
+              refs = set(re.findall(r'\.U\.([A-Za-z0-9_]+)', raw))
+              assert refs <= set(by_id), (refs, set(by_id))
+
+              assert 'lzc-file-chooser' not in raw
+              assert 'usage' in m and str(m['usage']).strip(), 'usage section missing'
+              usage_text = str(m['usage'])
+              assert ('真机验证' in usage_text or '实机验证' in usage_text), 'usage must state no device test'
+
