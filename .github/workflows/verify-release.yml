@@ -111,13 +111,16 @@ jobs:
                   main_lic = [n for n in lic if n.endswith('/LICENSE')]
                   target = main_lic[0] if main_lic else lic[0]
                   license_text = content.extractfile(target).read().decode()
-                  assert 'GNU AFFERO GENERAL PUBLIC LICENSE' in license_text, license_text[:120]
+                  flat = " ".join(license_text.split())
+                  assert "Apache License" in flat, license_text[:160]
+                  assert "Version 2.0" in flat, license_text[:160]
 
-                  scripts = [n for n in cmembers if n.endswith('entrypoint.sh')]
-                  assert len(scripts) >= 2, scripts
-                  joined = ' '.join(content.extractfile(s).read().decode() for s in scripts)
-                  assert 'layout assign' in joined, 'layout bootstrap missing'
-                  assert 'layout apply' in joined, 'layout apply missing'
+                  # the admin bootstrap script must ship inside the package
+                  scripts = [n for n in cmembers if n.endswith('create-admin.sh')]
+                  assert scripts, cmembers
+                  bootstrap = content.extractfile(scripts[0]).read().decode()
+                  assert 'create_superuser' in bootstrap, 'admin bootstrap missing'
+                  assert 'DJANGO_SECRET_KEY' not in bootstrap
 
           result = {
               'verified': True,
