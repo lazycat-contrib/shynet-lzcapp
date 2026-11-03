@@ -1,0 +1,60 @@
+application:
+  subdomain: shynet
+  multi_instance: false
+  upstreams:
+    - location: /package-licenses/
+      backend: file:///lzcapp/pkg/content/licenses/
+    - location: /
+      backend: http://shynet:8080/
+
+services:
+  shynet:
+    # upstream: milesmcc/shynet:v0.13.1
+    image: docker.1ms.run/milesmcc/shynet:v0.13.1
+    entrypoint:
+      - /lzcapp/pkg/content/create-admin.sh
+    environment:
+      # Without this Django falls back to the literal "onlyusethisindev".
+      - |-
+        DJANGO_SECRET_KEY={{ stable_secret "shynet_secret_key" | replace "\r" "" | replace "\n" "" }}
+      # Host header validation is on by default; the app is served under its
+      # public domain, not localhost.
+      - ALLOWED_HOSTS={{ .S.AppDomain }}
+      - |-
+        CSRF_TRUSTED_ORIGINS=https://{{ .S.AppDomain }}
+      # SQLite keeps this to a single container.
+      - SQLITE=True
+      - DB_NAME=/var/local/shynet/db/db.sqlite3
+      - PORT=8080
+      - |-
+        ADMIN_EMAIL={{ .U.admin_email }}
+      - |-
+        ADMIN_PASSWORD={{ .U.admin_password }}
+      - TZ=Asia/Shanghai
+    binds:
+      # SQLite database plus collected analytics live here
+      - /lzcapp/var/shynet:/var/local/shynet
+      - /lzcapp/pkg/content:/lzcapp/pkg/content:ro
+
+usage: |
+  Shynet 是注重隐私的网站统计工具：不使用 cookie，也不收集访客的个人信息。
+
+  使用方法：
+  1. 打开应用，用你安装时设置的邮箱和密码登录。
+  2. 点"新建服务"（Service），填你的站点域名，系统会给出一个跟踪脚本。
+  3. 把这段脚本贴到网站页面里（通常放在 </body> 前）。
+  4. 之后在 Shynet 就能看到访问量、来源、页面排行和在线人数。
+     需要更细的维度时，可以开启会话记录功能。
+
+  数据与安全：
+  - 数据库和统计数据都在 /lzcapp/var/shynet，卸载应用会一并删除，请定期备份。
+  - 管理员账号密码来自安装参数，密码默认随机生成，不存在内置弱口令。
+  - 应用密钥由平台稳定密钥生成，每个部署不同。
+  - 已配置访问域名与 CSRF 信任来源（反代下必需，否则登录会报错）。
+  - 应用经懒猫入口鉴权访问。
+
+  说明：
+  - 单容器部署，使用内置 SQLite，无需额外数据库。
+  - 首次启动会自动执行数据库迁移并创建管理员账号，打开可能需要等一会儿。
+  - 未配置邮件服务，邀请成员与找回密码等依赖邮件的功能不可用。
+  - 未做真机验证：登录、新建服务、脚本上报以及重启后持久化均未在设备上实测。

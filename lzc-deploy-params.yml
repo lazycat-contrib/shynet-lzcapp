@@ -1,0 +1,21 @@
+params:
+  - id: admin_email
+    type: string
+    name: Admin email
+    description: "Email used as the Shynet login identity."
+    default_value: "admin@example.com"
+    optional: false
+  - id: admin_password
+    type: secret
+    name: Admin password
+    description: "Password for the Shynet login, at least 12 characters."
+    default_value: "$random(len=20)"
+    optional: false
+locales:
+  zh:
+    admin_email:
+      name: 管理员邮箱
+      description: Shynet 的登录账号邮箱。
+    admin_password:
+      name: 管理员密码
+      description: Shynet 的登录密码，至少 12 位。默认随机生成，不存在内置弱口令。

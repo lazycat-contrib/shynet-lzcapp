@@ -1,0 +1,18 @@
+package: community.lazycat.app.shynet
+name: Shynet
+version: 0.0.0
+description: "Privacy-friendly analytics with no cookies: track visits without collecting personal data."
+min_os_version: "1.5.0"
+homepage: https://github.com/milesmcc/shynet
+author: Miles McCain
+license: Apache-2.0
+permissions:
+  required:
+    - net.internet
+locales:
+  zh:
+    name: Shynet
+    description: "不用 cookie 的网站统计：不收集个人信息，能看访客量和来源，适合注重隐私的站点。"
+  en:
+    name: Shynet
+    description: "Privacy-friendly analytics with no cookies: track visits without collecting personal data."

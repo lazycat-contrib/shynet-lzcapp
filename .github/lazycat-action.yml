@@ -1,0 +1,39 @@
+version: 1
+project:
+  root: .
+  build_config: lzc-build.yml
+  package_file: package.yml
+  output: dist/application.lpk
+  target_arch: amd64
+update:
+  strategy: publish
+  allow_downgrade: false
+  version_source:
+    type: image
+    image: shynet
+build:
+  toolchains: []
+  run_buildscript: false
+images:
+  - id: shynet
+    target: service
+    service: shynet
+    source: milesmcc/shynet
+    channel: stable
+    sort: semver
+    # tags include latest / edge / latest-type-ref -- match the v-prefixed releases
+    tag_regex: ^v[0-9]+[.][0-9]+[.][0-9]+$
+    version_regex: ^v(?P<version>[0-9]+[.][0-9]+[.][0-9]+)$
+    delivery:
+      mode: mirror
+      require_digest_match: true
+release:
+  use_github_release_notes: true
+  store_changelog_format: plain
+stores:
+  official:
+    enabled: false
+  private:
+    enabled: false
+    name: Shynet
+    skip_if_version_exists: true
